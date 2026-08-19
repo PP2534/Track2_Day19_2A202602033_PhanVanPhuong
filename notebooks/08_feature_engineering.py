@@ -28,6 +28,7 @@
 # %%
 import _setup  # noqa: F401
 import subprocess
+import sys
 import warnings
 from pathlib import Path
 
@@ -158,7 +159,10 @@ print(f"\n'lift ảo' sẽ mất khi lên production: {auc_lat - auc_pit:+.3f} A
 
 # %%
 repo = ROOT / "app" / "feast_repo_ondemand"
-subprocess.run(["python", str(ROOT / "scripts" / "gen_spend.py")], check=True,
+# Use sys.executable (the running venv) rather than a bare "python": on Windows,
+# CreateProcess can resolve "python" to a system interpreter that lacks pyarrow,
+# which makes gen_spend.py's to_parquet() fail inside the notebook.
+subprocess.run([sys.executable, str(ROOT / "scripts" / "gen_spend.py")], check=True,
                capture_output=True)
 subprocess.run(["feast", "apply"], cwd=repo, check=True, capture_output=True)
 subprocess.run(["feast", "materialize-incremental", "2027-01-01T00:00:00"],
